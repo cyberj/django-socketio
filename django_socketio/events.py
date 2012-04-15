@@ -8,19 +8,19 @@ class EventError(Exception):
 class Event(object):
     """
     Signal-like object for Socket.IO events that supports
-    filtering on channels. Registering event handlers is
+    filtering on event. Registering event handlers is
     performed by using the Event instance as a decorator::
 
         @on_message
-        def message(request, socket, message):
+        def message(request, namespace, message):
             ...
 
     Event handlers can also be registered for particular
     channels using the channel keyword argument with a
     regular expression pattern::
 
-        @on_message(channel="^room-")
-        def message(request, socket, message):
+        @on_message(event="^room-")
+        def message(request, namespace, message):
             ...
 
     The ``on_connect`` event cannot be registered with a
@@ -50,7 +50,7 @@ class Event(object):
             channel = re.compile(channel)
         self.handlers.append((handler, channel))
 
-    def send(self, request, socket, context, *args):
+    def send(self, request, namespace, context, *args):
         """
         When an event is sent, run all relevant handlers. Relevant
         handlers are those without a channel pattern when the given
@@ -62,22 +62,22 @@ class Event(object):
         being sent to the channel pattern.
         """
         for handler, pattern in self.handlers:
-            no_channel = not pattern and not socket.channels
+            no_channel = not pattern and not namespace.socket.channels
             if self.name.endswith("subscribe") and pattern:
                 matches = [pattern.match(args[0])]
             else:
-                matches = [pattern.match(c) for c in socket.channels if pattern]
+                matches = [pattern.match(c) for c in namespace.socket.channels if pattern]
             if no_channel or filter(None, matches):
-                handler(request, socket, context, *args)
+                handler(request, namespace, context, *args)
 
 
-on_connect      = Event(False)  # request, socket, context
-on_message      = Event()       # request, socket, context, message
-on_subscribe    = Event()       # request, socket, context, channel
-on_unsubscribe  = Event()       # request, socket, context, channel
-on_error        = Event()       # request, socket, context, exception
-on_disconnect   = Event()       # request, socket, context
-on_finish       = Event()       # request, socket, context
+on_connect      = Event(False)  # request, namespace, context
+on_message      = Event()       # request, namespace, context, message
+on_subscribe    = Event()       # request, namespace, context, channel
+on_unsubscribe  = Event()       # request, namespace, context, channel
+on_error        = Event()       # request, namespace, context, exception
+on_disconnect   = Event()       # request, namespace, context
+on_finish       = Event()       # request, namespace, context
 
 # Give each event a name attribute.
 for k, v in globals().items():

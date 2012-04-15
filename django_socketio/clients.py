@@ -12,7 +12,9 @@ def client_start(request, socket, context):
     """
     Adds the client triple to CLIENTS.
     """
-    CLIENTS[socket.session.session_id] = (request, socket, context)
+    print "i_start"
+    CLIENTS[socket.sessid] = (request, socket, context)
+    print "i_after"
 
 
 def client_end(request, socket, context):
@@ -31,7 +33,7 @@ def client_end(request, socket, context):
     for channel in socket.channels[:]:
         socket.unsubscribe(channel)
     # Remove the client.
-    del CLIENTS[socket.session.session_id]
+    del CLIENTS[socket.sessid]
 
 
 def client_end_all():
